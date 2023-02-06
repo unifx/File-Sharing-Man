@@ -10,7 +10,7 @@ from pyrogram import filters
 from pyrogram.errors import FloodWait
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 
-from config import ADMINS, FORCE_SUB_CHANNEL, FORCE_SUB_GROUP
+from config import ADMINS, FORCE_SUB_CHANNEL, FORCE_SUB_CHANNEL1, FORCE_SUB_CHANNEL2, FORCE_SUB_GROUP
 
 
 async def subschannel(filter, client, update):
@@ -22,6 +22,36 @@ async def subschannel(filter, client, update):
     try:
         member = await client.get_chat_member(
             chat_id=FORCE_SUB_CHANNEL, user_id=user_id
+        )
+    except UserNotParticipant:
+        return False
+
+    return member.status in ["creator", "administrator", "member"]
+
+async def subschannel1(filter, client, update):
+    if not FORCE_SUB_CHANNEL1:
+        return True
+    user_id = update.from_user.id
+    if user_id in ADMINS:
+        return True
+    try:
+        member = await client.get_chat_member(
+            chat_id=FORCE_SUB_CHANNEL1, user_id=user_id
+        )
+    except UserNotParticipant:
+        return False
+
+    return member.status in ["creator", "administrator", "member"]
+
+async def subschannel2(filter, client, update):
+    if not FORCE_SUB_CHANNEL2:
+        return True
+    user_id = update.from_user.id
+    if user_id in ADMINS:
+        return True
+    try:
+        member = await client.get_chat_member(
+            chat_id=FORCE_SUB_CHANNEL2, user_id=user_id
         )
     except UserNotParticipant:
         return False
@@ -46,6 +76,10 @@ async def subsgroup(filter, client, update):
 async def is_subscribed(filter, client, update):
     if not FORCE_SUB_CHANNEL:
         return True
+    if not FORCE_SUB_CHANNEL1:
+        return True
+    if not FORCE_SUB_CHANNEL2:
+        return True
     if not FORCE_SUB_GROUP:
         return True
     user_id = update.from_user.id
@@ -58,6 +92,18 @@ async def is_subscribed(filter, client, update):
     try:
         member = await client.get_chat_member(
             chat_id=FORCE_SUB_CHANNEL, user_id=user_id
+        )
+    except UserNotParticipant:
+        return False
+    try:
+        member = await client.get_chat_member(
+            chat_id=FORCE_SUB_CHANNEL1, user_id=user_id
+        )
+    except UserNotParticipant:
+        return False
+    try:
+        member = await client.get_chat_member(
+            chat_id=FORCE_SUB_CHANNEL2, user_id=user_id
         )
     except UserNotParticipant:
         return False
@@ -122,6 +168,8 @@ async def get_message_id(client, message):
             return msg_id
 
 
+subsgc = filters.create(subschannel1)
+subsgc = filters.create(subschannel2)
 subsgc = filters.create(subsgroup)
 subsch = filters.create(subschannel)
 subsall = filters.create(is_subscribed)
